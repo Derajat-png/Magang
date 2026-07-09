@@ -1,0 +1,441 @@
+﻿
+SOAL TES FULL STACK DEVELOPER PHP LARAVEL 
+Mini Project: Sistem Manajemen UMKM Terpadu 
+Materi: CRUD, Validasi, Auth/Guard, Parameter, Database, Query, Relasi, dan Leveling Hak Akses 
+ Komponen 
+ Keterangan 
+ Level Tes 
+ Junior - Middle Full Stack Developer Laravel 
+ Estimasi Pengerjaan 
+ 1 sampai 3 hari 
+ Stack Wajib 
+ Laravel 10/11, MySQL, Blade, Bootstrap/Tailwind, Eloquent ORM 
+ Output 
+ Source code Laravel, migration, seeder, .env.example, screenshot, dan panduan menjalankan project 
+1. Deskripsi Project 
+Buatlah aplikasi web berbasis Laravel dengan tema Sistem Manajemen UMKM Terpadu. Aplikasi ini digunakan untuk mengelola data UMKM, produk, stok, pesanan, transaksi, dan laporan sederhana. Project harus menunjukkan kemampuan kandidat dalam membangun fitur backend dan frontend secara rapi, aman, dan mudah digunakan. 
+Aplikasi harus memiliki role user yang berbeda, validasi input, relasi database, query filter, dashboard laporan, dan proses transaksi sederhana. Peserta diperbolehkan mengembangkan tampilan secara bebas selama seluruh requirement utama terpenuhi. 
+2. Role User dan Leveling Hak Akses 
+ Role 
+ Hak Akses Utama 
+ Super Admin 
+ Mengelola semua UMKM, user, kategori global, melihat seluruh laporan dan transaksi. 
+ Pemilik UMKM 
+ Mengelola profil UMKM miliknya, produk, stok, pesanan, transaksi, dan staff. 
+ Staff/Kasir 
+ Membuat pesanan, mengubah status pembayaran, melihat stok, dan melihat pesanan UMKM tempat ia bekerja. 
+ Customer/Guest 
+ Melihat katalog produk aktif dan membuat pesanan sederhana tanpa akses dashboard internal. 
+Ketentuan hak akses: 
+Super Admin boleh melihat semua data dari seluruh UMKM. 
+Pemilik UMKM hanya boleh mengelola data UMKM miliknya sendiri. 
+Staff/Kasir hanya boleh melihat dan mengubah data transaksi pada UMKM tempat ia terdaftar. 
+Customer/Guest tidak boleh mengakses halaman admin, pemilik UMKM, atau kasir. 
+Data antar UMKM tidak boleh bocor. Contoh: pemilik UMKM A tidak boleh melihat produk, transaksi, atau laporan milik UMKM B. 
+3. Authentication, Guard, dan Middleware Role 
+Buat fitur autentikasi minimal dengan route berikut: 
+GET  /loginPOST /loginPOST /logoutGET  /register-umkmPOST /register-umkm 
+ 
+Setelah login, redirect user berdasarkan role: 
+ Role 
+ Redirect Setelah Login 
+ Super Admin 
+ /admin/dashboard 
+ Pemilik UMKM 
+ /owner/dashboard 
+ Staff/Kasir 
+ /staff/dashboard 
+Buat middleware role. Contoh penggunaan route: 
+Route::middleware(['auth', 'role:super_admin'])-&gt;group(function () {    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);}); 
+Kandidat boleh menggunakan satu guard default Laravel dengan kolom role pada tabel users. Nilai tambah jika mampu membuat guard terpisah atau policy untuk membatasi kepemilikan data. 
+4. Struktur Database Wajib 
+Buat migration dan model untuk tabel berikut. Nama kolom dapat ditambah sesuai kebutuhan, tetapi field minimal harus tersedia. 
+4.1. Tabel users 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ umkm_id nullable 
+ 3 
+ name 
+ 4 
+ email unique 
+ 5 
+ password 
+ 6 
+ role: super_admin/owner/staff 
+ 7 
+ status: active/inactive 
+ 8 
+ created_at 
+ 9 
+ updated_at 
+4.2. Tabel umkms 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ owner_id 
+ 3 
+ name 
+ 4 
+ business_type 
+ 5 
+ address 
+ 6 
+ phone 
+ 7 
+ description nullable 
+ 8 
+ status: pending/active/inactive 
+ 9 
+ created_at 
+ 10 
+ updated_at 
+4.3. Tabel categories 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ umkm_id nullable 
+ 3 
+ name 
+ 4 
+ status: active/inactive 
+ 5 
+ created_at 
+ 6 
+ updated_at 
+4.4. Tabel products 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ umkm_id 
+ 3 
+ category_id 
+ 4 
+ name 
+ 5 
+ sku unique per UMKM 
+ 6 
+ description nullable 
+ 7 
+ price 
+ 8 
+ stock 
+ 9 
+ unit 
+ 10 
+ image nullable 
+ 11 
+ status: active/inactive 
+ 12 
+ created_at 
+ 13 
+ updated_at 
+4.5. Tabel orders 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ umkm_id 
+ 3 
+ created_by nullable 
+ 4 
+ customer_name 
+ 5 
+ customer_phone nullable 
+ 6 
+ order_date 
+ 7 
+ total_amount 
+ 8 
+ status: draft/pending/processed/completed/cancelled 
+ 9 
+ notes nullable 
+ 10 
+ created_at 
+ 11 
+ updated_at 
+4.6. Tabel order_items 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ order_id 
+ 3 
+ product_id 
+ 4 
+ qty 
+ 5 
+ price 
+ 6 
+ subtotal 
+ 7 
+ created_at 
+ 8 
+ updated_at 
+4.7. Tabel payments 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ order_id 
+ 3 
+ amount 
+ 4 
+ payment_method: cash/transfer/qris 
+ 5 
+ payment_status: unpaid/paid/failed/refund 
+ 6 
+ paid_at nullable 
+ 7 
+ created_at 
+ 8 
+ updated_at 
+4.8. Tabel stock_movements 
+ No 
+ Field Minimal 
+ 1 
+ id 
+ 2 
+ product_id 
+ 3 
+ type: in/out/adjustment 
+ 4 
+ qty 
+ 5 
+ before_stock 
+ 6 
+ after_stock 
+ 7 
+ notes nullable 
+ 8 
+ created_by 
+ 9 
+ created_at 
+ 10 
+ updated_at 
+5. Fitur CRUD Wajib 
+5.1. CRUD UMKM 
+Fitur ini khusus Super Admin. Pemilik UMKM hanya boleh mengedit profil UMKM miliknya sendiri. 
+GET    /admin/umkmsGET    /admin/umkms/createPOST   /admin/umkmsGET    /admin/umkms/{umkm}/editPUT    /admin/umkms/{umkm}DELETE /admin/umkms/{umkm} 
+name wajib, minimal 3 karakter. 
+business_type wajib, contoh: kuliner, fashion, kerajinan, jasa, pertanian, perikanan. 
+phone wajib dan maksimal 20 karakter. 
+status wajib: pending, active, inactive. 
+UMKM yang sudah memiliki transaksi tidak boleh dihapus permanen. Gunakan status inactive atau soft delete. 
+5.2. CRUD Produk 
+Fitur ini dapat diakses oleh Super Admin dan Pemilik UMKM. Staff/Kasir hanya boleh melihat produk dan stok. 
+GET    /owner/productsGET    /owner/products/createPOST   /owner/productsGET    /owner/products/{product}/editPUT    /owner/products/{product}DELETE /owner/products/{product} 
+name wajib, minimal 3 karakter. 
+category_id wajib dan harus valid. 
+sku wajib dan unik dalam satu UMKM. 
+price wajib angka dan minimal 100. 
+stock wajib angka dan minimal 0. 
+unit wajib, contoh: pcs, kg, liter, pack. 
+image opsional, hanya menerima jpg/png/webp, maksimal 2 MB. 
+status wajib active/inactive. 
+5.3. CRUD Kategori Produk 
+Kategori digunakan untuk mengelompokkan produk UMKM. 
+GET    /owner/categoriesPOST   /owner/categoriesGET    /owner/categories/{category}/editPUT    /owner/categories/{category}DELETE /owner/categories/{category} 
+name wajib, minimal 2 karakter. 
+Kategori yang sudah dipakai produk tidak boleh dihapus permanen. 
+5.4. Manajemen Staff/Kasir 
+Pemilik UMKM boleh membuat akun staff untuk UMKM miliknya. 
+GET    /owner/staffGET    /owner/staff/createPOST   /owner/staffGET    /owner/staff/{user}/editPUT    /owner/staff/{user}PATCH  /owner/staff/{user}/toggle-status 
+name wajib. 
+email wajib valid dan unik. 
+password wajib saat tambah akun, minimal 8 karakter. 
+Role staff otomatis bernilai staff. 
+Pemilik UMKM tidak boleh membuat akun super_admin. 
+6. Fitur Pesanan dan Transaksi 
+6.1. Membuat Pesanan 
+Staff/Kasir dan Pemilik UMKM dapat membuat pesanan. Customer/Guest dapat membuat pesanan dari halaman katalog public. 
+GET  /staff/orders/createPOST /staff/ordersGET  /staff/orders/{order}GET  /public/umkm/{umkm}/catalogPOST /public/umkm/{umkm}/order 
+customer_name wajib diisi. 
+customer_phone opsional, maksimal 20 karakter. 
+order_items wajib minimal 1 produk. 
+product_id wajib valid dan harus milik UMKM yang sama. 
+qty wajib angka minimal 1 dan tidak boleh melebihi stok. 
+total_amount dihitung otomatis dari jumlah subtotal item, bukan diinput manual dari form. 
+Saat pesanan completed, stok produk harus berkurang dan tercatat di stock_movements. 
+6.2. Update Status Pesanan 
+PATCH /owner/orders/{order}/statusPATCH /staff/orders/{order}/status 
+Status valid: draft, pending, processed, completed, cancelled. 
+Owner boleh mengubah semua status. 
+Staff hanya boleh mengubah pending menjadi processed atau completed. 
+Pesanan cancelled tidak boleh masuk ke laporan pendapatan. 
+Pesanan completed tidak boleh diedit item produknya. 
+6.3. Pembayaran 
+POST /staff/orders/{order}/paymentPUT  /staff/payments/{payment}GET  /owner/payments 
+amount wajib angka dan minimal sama dengan total pesanan. 
+payment_method wajib: cash, transfer, qris. 
+payment_status wajib: unpaid, paid, failed, refund. 
+Jika payment_status paid, paid_at otomatis terisi waktu sekarang jika field kosong. 
+Satu order hanya boleh memiliki satu payment aktif. 
+7. Kirim dan Terima Parameter 
+Project wajib menunjukkan penggunaan route parameter, query parameter, dan request/form parameter. 
+7.1. Route Parameter 
+/owner/products/{product}/edit/owner/orders/{order}/public/umkm/{umkm}/catalog 
+Controller boleh menerima ID manual atau menggunakan route model binding. 
+public function edit(Product $product){    // validasi kepemilikan produk terhadap UMKM user login} 
+7.2. Query Parameter 
+Buat fitur filter menggunakan query parameter. Contoh: 
+/owner/orders?status=completed&amp;date=2026-07-06&amp;customer=Fajar/owner/products?category_id=1&amp;keyword=beras&amp;status=active/admin/umkms?status=active&amp;type=kuliner 
+7.3. Request/Form Parameter 
+Data dari form harus diterima melalui Request dan divalidasi sebelum insert/update database. 
+public function store(Request $request){    $validated = $request-&gt;validate([        'name' =&gt; ['required', 'min:3'],        'price' =&gt; ['required', 'numeric', 'min:100'],    ]);} 
+8. Relasi Model dan Query Database Wajib 
+8.1. Relasi Model 
+User belongsTo UMKM. 
+UMKM hasMany Product. 
+UMKM hasMany Order. 
+UMKM hasMany User sebagai staff. 
+Category hasMany Product. 
+Product belongsTo Category dan UMKM. 
+Order belongsTo UMKM dan User sebagai created_by. 
+Order hasMany OrderItem. 
+Order hasOne Payment. 
+OrderItem belongsTo Product. 
+Product hasMany StockMovement. 
+class Order extends Model{    public function umkm() { return $this-&gt;belongsTo(Umkm::class); }    public function items() { return $this-&gt;hasMany(OrderItem::class); }    public function payment() { return $this-&gt;hasOne(Payment::class); }} 
+8.2. Query Filter dan Laporan 
+Gunakan Eloquent atau Query Builder untuk memenuhi query berikut: 
+Menampilkan produk aktif milik UMKM user login. 
+Filter produk berdasarkan kategori, status, dan keyword nama produk. 
+Menampilkan order dengan relasi customer, item, produk, dan payment. 
+Filter order berdasarkan status, tanggal, nama customer, dan metode pembayaran. 
+Menghitung total pendapatan hari ini, minggu ini, dan bulan ini. 
+Menghitung total produk stok menipis, misalnya stok kurang dari 5. 
+Menghitung total pesanan pending dan completed. 
+$query = Order::with(['items.product', 'payment'])    -&gt;where('umkm_id', auth()-&gt;user()-&gt;umkm_id);if ($request-&gt;filled('status')) {    $query-&gt;where('status', $request-&gt;status);}if ($request-&gt;filled('date')) {    $query-&gt;whereDate('order_date', $request-&gt;date);}$orders = $query-&gt;latest()-&gt;paginate(10); 
+$revenueToday = Payment::where('payment_status', 'paid')    -&gt;whereHas('order', function ($q) {        $q-&gt;where('umkm_id', auth()-&gt;user()-&gt;umkm_id);    })    -&gt;whereDate('paid_at', today())    -&gt;sum('amount'); 
+9. Dashboard Wajib 
+ Dashboard 
+ Data yang Harus Ditampilkan 
+ Super Admin 
+ Total UMKM aktif, total owner, total staff, total transaksi seluruh UMKM, total omzet seluruh UMKM. 
+ Pemilik UMKM 
+ Total produk aktif, stok menipis, pesanan hari ini, pesanan pending, omzet hari ini, omzet bulan ini. 
+ Staff/Kasir 
+ Pesanan hari ini, pesanan pending, transaksi paid, produk stok menipis. 
+ 
+10. Tampilan / Frontend 
+Gunakan Blade template dengan Bootstrap atau Tailwind. Tampilan tidak harus mewah, tetapi harus rapi, responsive, dan mudah digunakan. 
+ Area 
+ Halaman Minimal 
+ Public 
+ Landing page, daftar UMKM aktif, katalog produk UMKM, form pesanan public, login, register UMKM. 
+ Super Admin 
+ Dashboard, list UMKM, form tambah/edit UMKM, list user, laporan transaksi global. 
+ Pemilik UMKM 
+ Dashboard, profil UMKM, CRUD kategori, CRUD produk, manajemen staff, list order, detail order, laporan. 
+ Staff/Kasir 
+ Dashboard kasir, list order, form tambah order, detail order, form pembayaran. 
+11. Validasi dan Pesan Error 
+Setiap form wajib menampilkan pesan error validasi dan mempertahankan input lama menggunakan old(). 
+@error('name')    &lt;div class="text-danger"&gt;{{ $message }}&lt;/div&gt;@enderror&lt;input type="text" name="name" value="{{ old('name', $product-&gt;name ?? '') }}"&gt; 
+Validasi boleh menggunakan $request-&gt;validate() atau Form Request class. 
+Nilai tambah jika validasi dibuat di Form Request terpisah. 
+Flash message sukses/error wajib muncul setelah create, update, delete, dan payment. 
+12. Seeder Data 
+Buat seeder minimal untuk akun awal dan data dummy. 
+ Jenis Data 
+ Data Minimal 
+ User Super Admin 
+ admin@mail.com / password / role super_admin 
+ User Owner 
+ owner@mail.com / password / role owner 
+ User Staff 
+ staff@mail.com / password / role staff 
+ UMKM 
+ Minimal 3 UMKM: kuliner, fashion, dan kerajinan. 
+ Kategori 
+ Minimal 5 kategori produk. 
+ Produk 
+ Minimal 15 produk tersebar pada beberapa UMKM. 
+ Order Dummy 
+ Minimal 5 order dengan status berbeda. 
+13. Requirement Teknis 
+Laravel 10 atau Laravel 11. 
+Database MySQL. 
+Eloquent ORM dan relasi model. 
+Blade template. 
+Middleware role atau policy authorization. 
+Migration dan seeder wajib lengkap. 
+Tidak boleh hardcode data utama di Blade. Data harus berasal dari database. 
+Gunakan mass assignment dengan aman melalui $fillable atau $guarded. 
+Gunakan pagination pada list produk, UMKM, order, dan pembayaran. 
+Project harus bisa dijalankan dengan perintah standar Laravel. 
+14. Bonus Nilai 
+Upload gambar produk dan preview gambar. 
+Soft delete untuk UMKM, kategori, dan produk. 
+Export laporan order/payment ke Excel. 
+SweetAlert atau modal konfirmasi delete. 
+Chart omzet harian/bulanan. 
+API endpoint untuk katalog produk public. 
+Policy Laravel untuk membatasi akses data berdasarkan umkm_id. 
+Activity log sederhana untuk mencatat perubahan stok dan status pesanan. 
+Unit test atau feature test minimal untuk login dan CRUD produk. 
+Tampilan responsive mobile. 
+15. Output yang Harus Dikumpulkan 
+Source code project Laravel. 
+File .env.example yang sudah disesuaikan. 
+Migration dan seeder lengkap. 
+File SQL database jika menggunakan data import tambahan. 
+Screenshot landing page dan katalog produk. 
+Screenshot dashboard Super Admin, Pemilik UMKM, dan Staff/Kasir. 
+Screenshot CRUD produk dan kategori. 
+Screenshot pembuatan order dan pembayaran. 
+Screenshot filter order dan laporan omzet. 
+Akun login default beserta role. 
+Panduan menjalankan project di README.md. 
+Contoh panduan menjalankan project: 
+composer installcp .env.example .envphp artisan key:generatephp artisan migrate --seedphp artisan storage:linkphp artisan serve 
+16. Kriteria Penilaian 
+ Komponen Penilaian 
+ Bobot 
+ Struktur project Laravel dan kebersihan kode 
+ 10% 
+ Authentication, guard, middleware role, dan proteksi akses 
+ 15% 
+ CRUD UMKM, kategori, produk, dan staff 
+ 15% 
+ Fitur order, payment, stok, dan stock movement 
+ 15% 
+ Validasi form dan pesan error 
+ 10% 
+ Relasi database dan query filter/laporan 
+ 15% 
+ Penggunaan route parameter, query parameter, dan request parameter 
+ 10% 
+ UI/UX Blade dan responsive layout 
+ 5% 
+ Dokumentasi dan kemudahan menjalankan project 
+ 5% 
+17. Pertanyaan Wawancara Teknis Setelah Mini Project 
+1. Jelaskan alur data ketika staff membuat order sampai pembayaran menjadi paid. 
+2. Bagaimana cara memastikan pemilik UMKM A tidak bisa melihat produk UMKM B? 
+3. Apa perbedaan authentication dan authorization? 
+4. Kapan sebaiknya menggunakan middleware dan kapan menggunakan policy? 
+5. Jelaskan perbedaan route parameter, query parameter, dan request body/form parameter. 
+6. Apa fungsi with() pada Eloquent dan kenapa bisa mengurangi N+1 query? 
+7. Bagaimana cara menghitung omzet harian dari tabel payments? 
+8. Apa yang terjadi pada stok ketika order dibatalkan setelah sebelumnya completed? 
+9. Bagaimana cara membuat SKU unik hanya per UMKM, bukan global? 
+10. Apa penyebab umum error 500 di Laravel dan bagaimana cara mengeceknya? 
+11. Apa fungsi migration dan seeder? 
+12. Apa fungsi php artisan optimize:clear? 
+13. Bagaimana cara menangani upload gambar produk di Laravel? 
+14. Bagaimana cara membuat pagination dan mempertahankan query filter saat pindah halaman? 
+15. Kenapa total_amount order tidak boleh langsung dipercaya dari input frontend? 
+
