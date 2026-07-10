@@ -145,3 +145,5 @@ php artisan test
 
 15. **Kenapa total_amount order tidak boleh langsung dipercaya dari input frontend?**
     - Frontend dapat dimanipulasi dengan mudah oleh user nakal (misalnya memodifikasi total belanja di DevTools sebelum dikirim). Oleh karena itu, backend harus menghitung ulang total harga berdasarkan harga asli produk di database dikalikan quantity yang dikirim.
+#   T u g a s M a g a n g  
+ 
